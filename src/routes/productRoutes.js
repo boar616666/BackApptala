@@ -15,10 +15,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Rutas para productos
-router.post('/', upload.single('image'), productController.createProduct); // Crear producto con imagen
+router.post('/', upload.single('image'), productController.createProduct); // Crear producto
 router.get('/', productController.getAllProducts); // Obtener todos los productos
-router.put('/:id', upload.single('image'), productController.updateProduct); // Actualizar producto con imagen
+router.put('/:id', upload.single('image'), productController.updateProduct); // Actualizar producto
 router.delete('/:id', productController.deleteProduct); // Eliminar producto
 
-// Exportar el enrutador para usarlo en `app.js` o el archivo principal
 module.exports = router;

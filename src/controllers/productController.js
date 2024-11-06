@@ -1,9 +1,11 @@
 const Product = require('../models/product');
 
-// Crear un nuevo producto
 const createProduct = (req, res) => {
     const { title, description, price } = req.body;
-    const image = req.file ? req.file.path : null; // Obtén el path de la imagen si se proporciona
+    const image = req.file ? req.file.path : null;
+
+    console.log("Datos recibidos:", req.body);
+    console.log("Archivo recibido:", req.file);
 
     const newProduct = new Product({
         title,
@@ -17,9 +19,11 @@ const createProduct = (req, res) => {
             res.status(201).json({ message: 'Producto creado con éxito' });
         })
         .catch(err => {
+            console.error('Error al guardar el producto:', err); // Log de error detallado
             res.status(500).json({ error: 'Error al crear el producto: ' + err.message });
         });
 };
+
 
 // Obtener todos los productos
 const getAllProducts = (req, res) => {
