@@ -1,14 +1,10 @@
-// Importar el modelo Product
-const Product = require('../models/product'); // Asegúrate de que la ruta sea correcta
+const Product = require('../models/product');
 
+// Crear un nuevo producto
 const createProduct = (req, res) => {
-    // Lógica para manejar la creación del producto
-    const { title, description, price } = req.body; // Obtener datos del formulario
+    const { title, description, price } = req.body;
+    const image = req.file ? req.file.path : null; // Obtén el path de la imagen si se proporciona
 
-    // Manejar la imagen cargada
-    const image = req.file ? req.file.path : null; // Obtener la ruta de la imagen cargada
-
-    // Crear una nueva instancia del producto en la base de datos
     const newProduct = new Product({
         title,
         description,
@@ -16,15 +12,53 @@ const createProduct = (req, res) => {
         image,
     });
 
-    // Guardar el producto en la base de datos
     newProduct.save()
         .then(() => {
-            res.status(201).json({ message: 'Producto creado con éxito' }); // Cambia a JSON
+            res.status(201).json({ message: 'Producto creado con éxito' });
         })
         .catch(err => {
-            res.status(500).json({ error: 'Error al crear el producto: ' + err.message }); // Cambia a JSON
+            res.status(500).json({ error: 'Error al crear el producto: ' + err.message });
         });
 };
 
-// Exportar la función
-module.exports = { createProduct };
+// Obtener todos los productos
+const getAllProducts = (req, res) => {
+    Product.find()
+        .then(products => res.status(200).json(products))
+        .catch(err => res.status(500).json({ error: 'Error al obtener productos: ' + err.message }));
+};
+
+// Actualizar un producto
+const updateProduct = (req, res) => {
+    const { id } = req.params;
+    const { title, description, price } = req.body;
+    const image = req.file ? req.file.path : undefined; // Verifica si se envió una imagen nueva
+
+    const updateData = { title, description, price };
+    if (image) updateData.image = image; // Solo actualiza la imagen si se proporciona una nueva
+
+    Product.findByIdAndUpdate(id, updateData, { new: true })
+        .then(updatedProduct => res.status(200).json(updatedProduct))
+        .catch(err => res.status(500).json({ error: 'Error al actualizar el producto: ' + err.message }));
+};
+
+// Eliminar un producto
+const deleteProduct = (req, res) => {
+    const { id } = req.params;
+
+    if (!id) {
+        return res.status(400).json({ error: 'ID del producto no proporcionado' });
+    }
+
+    Product.findByIdAndDelete(id)
+        .then(() => res.status(200).json({ message: 'Producto eliminado con éxito' }))
+        .catch(err => res.status(500).json({ error: 'Error al eliminar el producto: ' + err.message }));
+};
+
+// Exportar las funciones
+module.exports = {
+    createProduct,
+    getAllProducts,
+    updateProduct,
+    deleteProduct
+};
