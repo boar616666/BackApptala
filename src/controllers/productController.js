@@ -1,17 +1,16 @@
 const Product = require('../models/product');
 
+// Crear producto
 const createProduct = (req, res) => {
-    const { title, description, price } = req.body;
+    let { title, description, price, proveedor } = req.body;
     const image = req.file ? req.file.path : null;
-
-    console.log("Datos recibidos:", req.body);
-    console.log("Archivo recibido:", req.file);
 
     const newProduct = new Product({
         title,
         description,
         price,
         image,
+        proveedor
     });
 
     newProduct.save()
@@ -19,11 +18,10 @@ const createProduct = (req, res) => {
             res.status(201).json({ message: 'Producto creado con éxito' });
         })
         .catch(err => {
-            console.error('Error al guardar el producto:', err); // Log de error detallado
+            console.error('Error al guardar el producto:', err);
             res.status(500).json({ error: 'Error al crear el producto: ' + err.message });
         });
 };
-
 
 // Obtener todos los productos
 const getAllProducts = (req, res) => {
@@ -32,34 +30,43 @@ const getAllProducts = (req, res) => {
         .catch(err => res.status(500).json({ error: 'Error al obtener productos: ' + err.message }));
 };
 
-// Actualizar un producto
+// Actualizar producto (sin verificar ownerId)
 const updateProduct = (req, res) => {
     const { id } = req.params;
-    const { title, description, price } = req.body;
-    const image = req.file ? req.file.path : undefined; // Verifica si se envió una imagen nueva
+    const { title, description, price, proveedor } = req.body;
+    const image = req.file ? req.file.path : undefined;
 
-    const updateData = { title, description, price };
-    if (image) updateData.image = image; // Solo actualiza la imagen si se proporciona una nueva
+    Product.findById(id)
+        .then(product => {
+            if (!product) {
+                return res.status(404).json({ error: 'Producto no encontrado' });
+            }
 
-    Product.findByIdAndUpdate(id, updateData, { new: true })
+            const updateData = { title, description, price, proveedor };
+            if (image) updateData.image = image;
+
+            return Product.findByIdAndUpdate(id, updateData, { new: true });
+        })
         .then(updatedProduct => res.status(200).json(updatedProduct))
         .catch(err => res.status(500).json({ error: 'Error al actualizar el producto: ' + err.message }));
 };
 
-// Eliminar un producto
+// Eliminar producto (sin verificar ownerId)
 const deleteProduct = (req, res) => {
     const { id } = req.params;
 
-    if (!id) {
-        return res.status(400).json({ error: 'ID del producto no proporcionado' });
-    }
+    Product.findById(id)
+        .then(product => {
+            if (!product) {
+                return res.status(404).json({ error: 'Producto no encontrado' });
+            }
 
-    Product.findByIdAndDelete(id)
+            return Product.findByIdAndDelete(id);
+        })
         .then(() => res.status(200).json({ message: 'Producto eliminado con éxito' }))
         .catch(err => res.status(500).json({ error: 'Error al eliminar el producto: ' + err.message }));
 };
 
-// Exportar las funciones
 module.exports = {
     createProduct,
     getAllProducts,
